@@ -1,17 +1,5 @@
 #include "matrix.h"
 
-static matrix_t create_identity_matrix(int rows, int columns) {
-    matrix_t I = create_matrix(rows, columns);
-    for (int i = 0; i < I.rows; i++) {
-        for (int j = 0; j < I.columns; j++) {
-            if (i == j)
-                I.matrix[i][j] = 1;
-        }
-    }
-    I.matrix_type = IDENTITY_MATRIX;
-    return I;
-}
-
 static matrix_t create_incorrect_matrix() {
     matrix_t R;
     R.matrix = NULL;

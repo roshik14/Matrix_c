@@ -1,5 +1,5 @@
-#ifndef SRC_S21_MATRIX_H_
-#define SRC_S21_MATRIX_H_
+#ifndef MATRIX_H_
+#define MATRIX_H_
 #include <stdlib.h>
 #include <math.h>
 
@@ -36,4 +36,4 @@ matrix_t calc_complements(matrix_t *A);
 double determinant(matrix_t *A);
 matrix_t inverse_matrix(matrix_t *A);
 
-#endif  // SRC_S21_MATRIX_H_
+#endif  // MATRIX_H_
