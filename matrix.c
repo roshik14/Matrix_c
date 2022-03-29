@@ -1,5 +1,131 @@
 #include "matrix.h"
 
+static matrix_t create_identity_matrix(int rows, int columns) {
+    matrix_t I = create_matrix(rows, columns);
+    for (int i = 0; i < I.rows; i++) {
+        for (int j = 0; j < I.columns; j++) {
+            if (i == j)
+                I.matrix[i][j] = 1;
+        }
+    }
+    I.matrix_type = IDENTITY_MATRIX;
+    return I;
+}
+
+static matrix_t create_incorrect_matrix() {
+    matrix_t R;
+    R.matrix = NULL;
+    R.matrix_type = INCORRECT_MATRIX;
+    return R;
+}
+
+static int is_zero_matrix(matrix_t M) {
+    int result = SUCCESS;
+    for (int i = 0; i < M.rows; i++) {
+        for (int j = 0; j < M.columns; j++) {
+                if (fabs(M.matrix[i][j]) > E) {
+                result = FAILURE;
+            }
+        }
+    }
+    return result;
+}
+
+static int is_identity_matrix(matrix_t M) {
+    int result = SUCCESS;
+    for (int i = 0; i < M.rows; i++) {
+        for (int j = 0; j < M.columns; j++) {
+            if (i == j) {
+                if ((fabs(M.matrix[i][j]) - 1.0) > E) {
+                    result = FAILURE;
+                }
+            } else {
+                if (fabs(M.matrix[i][j]) > E) {
+                    result = FAILURE;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+static int get_matrix_type(matrix_t M) {
+    int result = CORRECT_MATRIX;
+    if (M.matrix_type == INCORRECT_MATRIX)
+        result = INCORRECT_MATRIX;
+    else if (is_zero_matrix(M))
+        result = ZERO_MATRIX;
+    else if (is_identity_matrix(M))
+        result = IDENTITY_MATRIX;
+    return result;
+}
+
+static int is_incorrect_matrix(matrix_t *M) {
+    return M->matrix_type == INCORRECT_MATRIX;
+}
+
+static int is_not_square(matrix_t *M) {
+    return M->rows != M->columns;
+}
+
+static int is_empty(int rows, int columns) {
+    return rows == 0 && columns == 0;
+}
+
+static int is_size_equal(matrix_t *A, matrix_t *B) {
+    return A->rows == B->rows && A->columns == B->columns;
+}
+
+static int check_matrixes(matrix_t *A, matrix_t *B) {
+    return (is_incorrect_matrix(A) || is_incorrect_matrix(B)) || !is_size_equal(A, B);
+}
+
+static int check_one_matrix(matrix_t *A) {
+    return is_incorrect_matrix(A) || is_not_square(A);
+}
+
+static matrix_t sub_sum_mult_matrix(matrix_t *A, matrix_t *B, int expr, double number) {
+    matrix_t C = create_matrix(0, 0);
+    if (!check_matrixes(A, B) && !isnan(number)) {
+        C = create_matrix(A->rows, A->columns);
+        for (int i = 0; i < A->rows; i++) {
+            for (int j = 0; j < A->columns; j++) {
+                double first = A->matrix[i][j];
+                if (expr != MULT) {
+                    double second = B->matrix[i][j];
+                    if (expr == SUM)
+                        C.matrix[i][j] = first + second;
+                    else
+                        C.matrix[i][j] = first - second;
+                } else {
+                    C.matrix[i][j] = first * number;
+                }
+            }
+        }
+        C.matrix_type = get_matrix_type(C);
+    }
+    return C;
+}
+
+static matrix_t get_minor_matrix(matrix_t *A, int a_i, int a_j) {
+    matrix_t M = create_matrix(A->rows - 1, A->columns - 1);
+    for (int i = 0; i < A->rows; i++) {
+        for (int j = 0; j < A->columns; j++) {
+            if (i != a_i && j != a_j) {
+                if (i > a_i && j > a_j)
+                    M.matrix[i - 1][j - 1] = A->matrix[i][j];
+                else if (i > a_i)
+                    M.matrix[i - 1][j] = A->matrix[i][j];
+                else if (j > a_j)
+                    M.matrix[i][j - 1] = A->matrix[i][j];
+                else
+                    M.matrix[i][j] = A->matrix[i][j];
+            }
+        }
+    }
+    return M;
+}
+
 matrix_t create_matrix(int rows, int columns) {
     matrix_t N;
     if (is_empty(rows, columns)) {
@@ -161,129 +287,3 @@ matrix_t inverse_matrix(matrix_t *A) {
     return R;
 }
 
-// Help functions
-matrix_t create_identity_matrix(int rows, int columns) {
-    matrix_t I = create_matrix(rows, columns);
-    for (int i = 0; i < I.rows; i++) {
-        for (int j = 0; j < I.columns; j++) {
-            if (i == j)
-                I.matrix[i][j] = 1;
-        }
-    }
-    I.matrix_type = IDENTITY_MATRIX;
-    return I;
-}
-
-matrix_t create_incorrect_matrix() {
-    matrix_t R;
-    R.matrix = NULL;
-    R.matrix_type = INCORRECT_MATRIX;
-    return R;
-}
-
-int is_zero_matrix(matrix_t M) {
-    int result = SUCCESS;
-    for (int i = 0; i < M.rows; i++) {
-        for (int j = 0; j < M.columns; j++) {
-                if (fabs(M.matrix[i][j]) > E) {
-                result = FAILURE;
-            }
-        }
-    }
-    return result;
-}
-
-int is_identity_matrix(matrix_t M) {
-    int result = SUCCESS;
-    for (int i = 0; i < M.rows; i++) {
-        for (int j = 0; j < M.columns; j++) {
-            if (i == j) {
-                if ((fabs(M.matrix[i][j]) - 1.0) > E) {
-                    result = FAILURE;
-                }
-            } else {
-                if (fabs(M.matrix[i][j]) > E) {
-                    result = FAILURE;
-                }
-            }
-        }
-    }
-    return result;
-}
-
-int get_matrix_type(matrix_t M) {
-    int result = CORRECT_MATRIX;
-    if (M.matrix_type == INCORRECT_MATRIX)
-        result = INCORRECT_MATRIX;
-    else if (is_zero_matrix(M))
-        result = ZERO_MATRIX;
-    else if (is_identity_matrix(M))
-        result = IDENTITY_MATRIX;
-    return result;
-}
-
-int is_incorrect_matrix(matrix_t *M) {
-    return M->matrix_type == INCORRECT_MATRIX;
-}
-
-int is_not_square(matrix_t *M) {
-    return M->rows != M->columns;
-}
-
-int is_empty(int rows, int columns) {
-    return rows == 0 && columns == 0;
-}
-
-int is_size_equal(matrix_t *A, matrix_t *B) {
-    return A->rows == B->rows && A->columns == B->columns;
-}
-
-int check_matrixes(matrix_t *A, matrix_t *B) {
-    return (is_incorrect_matrix(A) || is_incorrect_matrix(B)) || !is_size_equal(A, B);
-}
-
-int check_one_matrix(matrix_t *A) {
-    return is_incorrect_matrix(A) || is_not_square(A);
-}
-
-matrix_t sub_sum_mult_matrix(matrix_t *A, matrix_t *B, int expr, double number) {
-    matrix_t C = create_matrix(0, 0);
-    if (!check_matrixes(A, B) && !isnan(number)) {
-        C = create_matrix(A->rows, A->columns);
-        for (int i = 0; i < A->rows; i++) {
-            for (int j = 0; j < A->columns; j++) {
-                double first = A->matrix[i][j];
-                if (expr != MULT) {
-                    double second = B->matrix[i][j];
-                    if (expr == SUM)
-                        C.matrix[i][j] = first + second;
-                    else
-                        C.matrix[i][j] = first - second;
-                } else {
-                    C.matrix[i][j] = first * number;
-                }
-            }
-        }
-        C.matrix_type = get_matrix_type(C);
-    }
-    return C;
-}
-
-matrix_t get_minor_matrix(matrix_t *A, int a_i, int a_j) {
-    matrix_t M = create_matrix(A->rows - 1, A->columns - 1);
-    for (int i = 0; i < A->rows; i++) {
-        for (int j = 0; j < A->columns; j++) {
-            if (i != a_i && j != a_j) {
-                if (i > a_i && j > a_j)
-                    M.matrix[i - 1][j - 1] = A->matrix[i][j];
-                else if (i > a_i)
-                    M.matrix[i - 1][j] = A->matrix[i][j];
-                else if (j > a_j)
-                    M.matrix[i][j - 1] = A->matrix[i][j];
-                else
-                    M.matrix[i][j] = A->matrix[i][j];
-            }
-        }
-    }
-    return M;
-}
